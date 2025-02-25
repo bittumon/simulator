@@ -1,0 +1,489 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    overflow: hidden;
+}
+
+.logo-container {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.main-logo {
+    max-width: 200px;
+    height: auto;
+}
+.logo-container img {
+    max-width: 50%;
+    height: auto;
+}
+
+.step {
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.5s ease;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: 100%;
+    height: 100vh;
+    background: linear-gradient(135deg, #e0e0e0 50%, #505050 50%);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    overflow: auto;
+}
+
+.step.active {
+    opacity: 1;
+    transform: translateX(0);
+    display: block;
+    left: 0;
+    text-align: center;
+}
+
+.step.hidden {
+    left: -100%;
+}
+
+#step1, #step2, #step3, #step4 {
+    display: flex;
+    align-items: center;
+    justify-content: flex;
+    padding-left: 50px;
+    height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+#step4 {
+    padding: 20px 30px;
+    height: 100vh;
+    max-height: 100vh;
+}
+
+#step4 .container {
+    padding: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+#step4 .calculation-results {
+    padding: 12px;
+    margin: 8px auto;
+    width: 95%;
+}
+
+#step4 .calculation-results p {
+    margin: 4px 0;
+    padding: 4px 8px;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+#step4 .calculation-results h3 {
+    margin: 8px 0;
+    font-size: 1.1em;
+}
+
+#step4 button {
+    margin: 10px auto;
+}
+
+#step1 .container, #step2 .container, #step3 .container, #step4 .container {
+    text-align: left;
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    width: 80%;
+    max-width: 750px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.form-group.mt-4 {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.form-group.mt-4::-webkit-scrollbar {
+    width: 10px;
+}
+
+.form-group.mt-4::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 5px;
+}
+
+.form-group.mt-4::-webkit-scrollbar-thumb {
+    background: #FFA500;
+    border-radius: 5px;
+}
+
+.form-group.mt-4::-webkit-scrollbar-thumb:hover {
+    background: #FF8C00;
+}
+
+.mt-3, #step1 button, #step2 button, #step3 button, #step4 button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    align-items: center;
+    background-color: #FFA500;
+    color: black;
+    border: none;
+    margin: 15px auto;
+    display: block;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    animation: bounceIn 0.5s ease-in-out;
+}
+
+.mt-3:hover, #step1 button:hover, #step2 button:hover, #step3 button:hover, #step4 button:hover {
+    background-color: #FF8C00;
+}
+
+.calculation-results {
+    background-color: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin: 20px auto;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.calculation-results h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.calculation-results p {
+    margin: 10px 0;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+}
+
+.calculation-results strong {
+    color: #FFA500;
+}
+
+.result-value {
+    padding-top: 5px;
+    font-weight: bold;
+    color: #4caf50;
+}
+
+.form-control {
+    padding: 10px;
+    width: 400px;
+    border: none;
+    border-radius: 7px;
+}
+
+#map {
+    width: 100%;
+    height: 500px;
+    margin-top: 20px;
+    border: 1px solid #ddd;
+}
+
+.map-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 10;
+}
+
+#map-container {
+    width: 100%;
+    margin-bottom: 20px;
+    border-radius: 20px;
+}
+
+.map-overlay button {
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #4caf50;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.redo-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 5;
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.redo-button:hover {
+    background: #d32f2f;
+}
+
+.status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: #e0e0e0;
+    display: flex;
+    z-index: 1000;
+}
+
+.status-bar div {
+    flex: 1;
+    background: hwb(122 31% 11%);
+    height: 100%;
+    border-radius: 10px;
+}
+
+.status-bar div.inactive {
+    background: #e0e0e0;
+}
+
+.logo {
+    width: 100px;
+    height: auto;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.logo.active-logo {
+    border-color: #4caf50;
+    transform: scale(1.1);
+}
+
+.efficiency-options {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin: 20px auto;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.efficiency-options label {
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 16px;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.efficiency-options input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+#imagesContainer img {
+    background: transparent;
+    pointer-events: auto;
+    transition: transform 0.2s ease;
+    cursor: move;
+    display: inline-block;
+    box-shadow: none;
+}
+
+#imagesContainer img:active {
+    transform: scale(0.95);
+}
+
+#batteryImagesContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#batteryImagesContainer img {
+    width: 50px;
+    margin: -15px 0;
+}
+
+#additionalImagesContainer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+#additionalImagesContainer img {
+    width: 70px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.3);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.form-group {
+    animation: slideIn 0.5s ease-in-out;
+}
+
+
+.icon.fill {
+  filter: drop-shadow(0 0 10px yellow);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+label {
+    margin-bottom: 5px; /* Space between label and input */
+    font-weight: bold; /* Make labels stand out */
+}
+
+.form-control {
+    padding: 10px;
+    border: 1px solid #ccc; /* Add a border */
+    border-radius: 7px;
+    box-sizing: border-box; /* Include padding and border in width */
+    transition: border-color 0.3s ease; /* Smooth border color transition on focus */
+}
+
+.form-control:focus {
+    border-color: #007bff; /* Highlight border on focus (example color) */
+    outline: none; /* Remove default focus outline */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.2); /* Add a subtle shadow on focus */
+}
+
+button[type="submit"] { /* Style the submit button */
+    padding: 10px 15px;
+    background-color: #007bff; /* Example button color */
+    color: white;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #0056b3; /* Darker color on hover */
+}
+
+/* Optional: Add error styling */
+.error {
+    color: red;
+    margin-top: 5px;
+}
+
+
+.logo-container {
+    text-align: center;
+    padding: 20px 0; /* Consistent vertical padding */
+}
+
+.logo-container img { /* Target the logo image specifically */
+    max-width: 50%; /* Prevent image from overflowing its container */
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Prevents small vertical space below image in some cases */
+    margin: 0 auto; /* Center the image horizontally */
+}
+
+/* Optional: Add media queries for more fine-grained control */
+@media (max-width: 768px) { /* Example breakpoint for tablets/smaller screens */
+    .logo-container {
+        padding: 15px 0; /* Adjust padding for smaller screens */
+    }
+
+    .logo-container img {
+      max-width: 90%; /* Slightly smaller image on smaller screens */
+    }
+}
+
+@media (max-width: 576px) { /* Example breakpoint for mobile devices */
+    .logo-container {
+        padding: 10px 0; /* Adjust padding further for mobile */
+    }
+    .logo-container img {
+      max-width: 80%; /* Even smaller on mobile */
+    }
+}
