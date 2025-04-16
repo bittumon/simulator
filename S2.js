@@ -53,41 +53,120 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Initialize Google Maps autocomplete
+// Initialize Google Maps autocomplete with the new PlaceAutocompleteElement API
 function initAutocomplete() {
-    // Initialize autocomplete for address input
-    const addressInput = document.getElementById('address');
-    autocomplete = new google.maps.places.Autocomplete(addressInput, {
-        types: ['address'],
-        componentRestrictions: { country: 'it' }
-    });
+    try {
+        console.log("Initializing address autocomplete...");
+        const addressInput = document.getElementById('address');
+        
+        if (!addressInput) {
+            console.error("Address input element not found!");
+            return;
+        }
 
-    // Listen for place selection
-    autocomplete.addListener('place_changed', onPlaceChanged);
+        // Create the PlaceAutocompleteElement without removing the original input yet
+        const placeAutocompleteElement = new google.maps.places.PlaceAutocompleteElement({
+            types: ['address'],
+            componentRestrictions: { country: 'it' },
+            fields: ['geometry', 'formatted_address'],
+            inputPlaceholder: addressInput.placeholder || "Inserisci indirizzo"
+        });
+        
+        // Get the container for the address input
+        const addressContainer = addressInput.parentElement;
+        
+        // Style the PlaceAutocompleteElement
+        const elementContainer = placeAutocompleteElement.element;
+        elementContainer.style.width = '100%';
+        elementContainer.style.marginBottom = '15px';
+        
+        // Only remove the original input and add the new element if creation was successful
+        addressInput.style.display = 'none';  // Hide instead of removing
+        addressContainer.insertBefore(elementContainer, addressInput);
+        
+        console.log("PlaceAutocompleteElement added to DOM");
+        
+        // Listen for place selection
+        placeAutocompleteElement.addListener('place_changed', () => {
+            const place = placeAutocompleteElement.getPlace();
+            
+            if (!place || !place.geometry) {
+                // User didn't select a prediction
+                document.getElementById('step1Next').style.display = 'none';
+                showError('Seleziona un indirizzo valido dalla lista.');
+                return;
+            }
+            
+            // Store the selected place
+            selectedPlace = place;
+            
+            // Display the Procedi button when a valid place is selected
+            document.getElementById('step1Next').style.display = 'block';
+            
+            // Hide any previous error
+            document.getElementById('address-error-container').style.display = 'none';
+            
+            // For debugging
+            console.log("Selected place: ", place.formatted_address);
+        });
 
-    // Initialize the map (it will be hidden until step 2)
-    initMap();
-    
-    console.log("Autocomplete initialized successfully for address input");
+        // Initialize the map (it will be hidden until step 2)
+        initMap();
+        
+        console.log("PlaceAutocompleteElement initialization complete");
+    } catch (error) {
+        console.error("Error initializing PlaceAutocompleteElement:", error);
+        
+        // Fallback to classic Autocomplete if PlaceAutocompleteElement fails
+        fallbackToClassicAutocomplete();
+    }
 }
 
-// Handle place selection from autocomplete
-function onPlaceChanged() {
-    selectedPlace = autocomplete.getPlace();
-    
-    if (!selectedPlace.geometry) {
-        // User didn't select a prediction; reset the input field
-        document.getElementById('address').placeholder = 'Inserisci indirizzo';
-        document.getElementById('step1Next').style.display = 'none';
-        showError('Seleziona un indirizzo valido dalla lista.');
-        return;
+// Fallback to classic Autocomplete if PlaceAutocompleteElement fails
+function fallbackToClassicAutocomplete() {
+    try {
+        console.log("Falling back to classic Autocomplete");
+        const addressInput = document.getElementById('address');
+        
+        if (!addressInput) {
+            console.error("Address input element still not found!");
+            return;
+        }
+        
+        // Make sure the input is visible
+        addressInput.style.display = 'block';
+        
+        // Initialize classic autocomplete
+        autocomplete = new google.maps.places.Autocomplete(addressInput, {
+            types: ['address'],
+            componentRestrictions: { country: 'it' }
+        });
+        
+        // Listen for place selection
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            
+            if (!place.geometry) {
+                document.getElementById('step1Next').style.display = 'none';
+                showError('Seleziona un indirizzo valido dalla lista.');
+                return;
+            }
+            
+            // Store the selected place
+            selectedPlace = place;
+            
+            // Display the Procedi button when a valid place is selected
+            document.getElementById('step1Next').style.display = 'block';
+            
+            // Hide any previous error
+            document.getElementById('address-error-container').style.display = 'none';
+        });
+        
+        // Initialize the map (it will be hidden until step 2)
+        initMap();
+    } catch (error) {
+        console.error("Error in fallback autocomplete:", error);
     }
-
-    // Display the Procedi button when a valid place is selected
-    document.getElementById('step1Next').style.display = 'block';
-    
-    // Hide any previous error
-    document.getElementById('address-error-container').style.display = 'none';
 }
 
 // Show error message
