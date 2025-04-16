@@ -53,120 +53,53 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Initialize Google Maps autocomplete with the new PlaceAutocompleteElement API
+// Initialize Google Maps autocomplete
 function initAutocomplete() {
-    try {
-        console.log("Initializing address autocomplete...");
-        const addressInput = document.getElementById('address');
-        
-        if (!addressInput) {
-            console.error("Address input element not found!");
-            return;
-        }
-
-        // Create the PlaceAutocompleteElement without removing the original input yet
-        const placeAutocompleteElement = new google.maps.places.PlaceAutocompleteElement({
-            types: ['address'],
-            componentRestrictions: { country: 'it' },
-            fields: ['geometry', 'formatted_address'],
-            inputPlaceholder: addressInput.placeholder || "Inserisci indirizzo"
-        });
-        
-        // Get the container for the address input
-        const addressContainer = addressInput.parentElement;
-        
-        // Style the PlaceAutocompleteElement
-        const elementContainer = placeAutocompleteElement.element;
-        elementContainer.style.width = '100%';
-        elementContainer.style.marginBottom = '15px';
-        
-        // Only remove the original input and add the new element if creation was successful
-        addressInput.style.display = 'none';  // Hide instead of removing
-        addressContainer.insertBefore(elementContainer, addressInput);
-        
-        console.log("PlaceAutocompleteElement added to DOM");
-        
-        // Listen for place selection
-        placeAutocompleteElement.addListener('place_changed', () => {
-            const place = placeAutocompleteElement.getPlace();
-            
-            if (!place || !place.geometry) {
-                // User didn't select a prediction
-                document.getElementById('step1Next').style.display = 'none';
-                showError('Seleziona un indirizzo valido dalla lista.');
-                return;
-            }
-            
-            // Store the selected place
-            selectedPlace = place;
-            
-            // Display the Procedi button when a valid place is selected
-            document.getElementById('step1Next').style.display = 'block';
-            
-            // Hide any previous error
-            document.getElementById('address-error-container').style.display = 'none';
-            
-            // For debugging
-            console.log("Selected place: ", place.formatted_address);
-        });
-
-        // Initialize the map (it will be hidden until step 2)
-        initMap();
-        
-        console.log("PlaceAutocompleteElement initialization complete");
-    } catch (error) {
-        console.error("Error initializing PlaceAutocompleteElement:", error);
-        
-        // Fallback to classic Autocomplete if PlaceAutocompleteElement fails
-        fallbackToClassicAutocomplete();
+    // Initialize autocomplete for address input
+    const addressInput = document.getElementById('address');
+    if (!addressInput) {
+        console.error("Address input field not found");
+        return;
     }
+
+    autocomplete = new google.maps.places.Autocomplete(addressInput, {
+        types: ['address'],
+        componentRestrictions: { country: 'it' }
+    });
+
+    // Listen for place selection
+    autocomplete.addListener('place_changed', onPlaceChanged);
+
+    // Initialize the map (it will be hidden until step 2)
+    initMap();
+    
+    console.log("Autocomplete initialized successfully for address input");
 }
 
-// Fallback to classic Autocomplete if PlaceAutocompleteElement fails
-function fallbackToClassicAutocomplete() {
-    try {
-        console.log("Falling back to classic Autocomplete");
-        const addressInput = document.getElementById('address');
-        
-        if (!addressInput) {
-            console.error("Address input element still not found!");
-            return;
-        }
-        
-        // Make sure the input is visible
-        addressInput.style.display = 'block';
-        
-        // Initialize classic autocomplete
-        autocomplete = new google.maps.places.Autocomplete(addressInput, {
-            types: ['address'],
-            componentRestrictions: { country: 'it' }
-        });
-        
-        // Listen for place selection
-        autocomplete.addListener('place_changed', function() {
-            const place = autocomplete.getPlace();
-            
-            if (!place.geometry) {
-                document.getElementById('step1Next').style.display = 'none';
-                showError('Seleziona un indirizzo valido dalla lista.');
-                return;
-            }
-            
-            // Store the selected place
-            selectedPlace = place;
-            
-            // Display the Procedi button when a valid place is selected
-            document.getElementById('step1Next').style.display = 'block';
-            
-            // Hide any previous error
-            document.getElementById('address-error-container').style.display = 'none';
-        });
-        
-        // Initialize the map (it will be hidden until step 2)
-        initMap();
-    } catch (error) {
-        console.error("Error in fallback autocomplete:", error);
+// Handle place selection from autocomplete
+function onPlaceChanged() {
+    selectedPlace = autocomplete.getPlace();
+    
+    if (!selectedPlace.geometry) {
+        // User didn't select a prediction; reset the input field
+        document.getElementById('address').placeholder = 'Inserisci indirizzo';
+        document.getElementById('step1Next').style.display = 'none';
+        showError('Seleziona un indirizzo valido dalla lista.');
+        return;
     }
+
+    // Store the selected address and coordinates for later use
+    localStorage.setItem("address", selectedPlace.formatted_address);
+    localStorage.setItem("latitude", selectedPlace.geometry.location.lat());
+    localStorage.setItem("longitude", selectedPlace.geometry.location.lng());
+
+    // Display the Procedi button when a valid place is selected
+    document.getElementById('step1Next').style.display = 'block';
+    
+    // Hide any previous error
+    document.getElementById('address-error-container').style.display = 'none';
+    
+    console.log("Valid place selected:", selectedPlace.formatted_address);
 }
 
 // Show error message
@@ -188,39 +121,68 @@ function goToStep2() {
     document.getElementById('section-step1').style.display = 'none';
     document.getElementById('section-step2').style.display = 'block';
     
-    // Center the map on the selected place
-    map.setCenter(selectedPlace.geometry.location);
-    map.setZoom(20); // Close zoom to see building details
-    
-    // Force map resize to prevent rendering issues
-    google.maps.event.trigger(map, 'resize');
+    // IMPORTANT: Force map to render properly after container becomes visible
+    setTimeout(() => {
+        // Force map resize to prevent rendering issues
+        google.maps.event.trigger(map, 'resize');
+        
+        // Center the map on the selected place
+        if (selectedPlace && selectedPlace.geometry) {
+            map.setCenter(selectedPlace.geometry.location);
+            map.setZoom(20); // Close zoom to see building details
+        } else if (localStorage.getItem("latitude") && localStorage.getItem("longitude")) {
+            // Fallback to stored coordinates if available
+            const lat = parseFloat(localStorage.getItem("latitude"));
+            const lng = parseFloat(localStorage.getItem("longitude"));
+            map.setCenter({lat, lng});
+            map.setZoom(20);
+        }
+        
+        console.log("Map resized and centered in step 2");
+    }, 300); // Short delay to ensure the container is fully visible
 }
 
 function goToStep3() {
     document.getElementById('section-step2').style.display = 'none';
     document.getElementById('section-step3').style.display = 'block';
+    
+    console.log("Navigated to step 3");
 }
 
 function goToStep4() {
     document.getElementById('section-step3').style.display = 'none';
     document.getElementById('section-step4').style.display = 'block';
+    
+    console.log("Navigated to step 4");
 }
 
 // Initialize Google Map
 function initMap() {
+    // Find map container
+    const mapElement = document.getElementById('map');
+    if (!mapElement) {
+        console.error("Map element not found!");
+        return;
+    }
+    
     // Default center (Italy)
     const defaultCenter = { lat: 41.9028, lng: 12.4964 };
     
-    // Create a map instance
-    map = new google.maps.Map(document.getElementById('map'), {
+    // Create a map instance with improved options for better rendering
+    map = new google.maps.Map(mapElement, {
         center: defaultCenter,
         zoom: 6,
         mapTypeId: 'satellite',
         mapTypeControl: true,
+        fullscreenControl: true,
+        streetViewControl: false,
         mapTypeControlOptions: {
             style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
             position: google.maps.ControlPosition.TOP_RIGHT
-        }
+        },
+        // Add these options to help with rendering issues
+        gestureHandling: 'greedy',
+        tilt: 0
     });
 
     // Initialize the drawing manager
@@ -269,6 +231,8 @@ function initMap() {
         // Hide the overlay
         document.getElementById('mapOverlay').style.display = 'none';
     });
+
+    console.log("Map initialized with improved settings");
 }
 
 // Start polygon drawing
@@ -287,6 +251,12 @@ function startDrawing() {
     
     // Hide the Procedi button until drawing is complete
     document.getElementById('step2Next').style.display = 'none';
+    
+    // Show drawing instructions
+    const instructionsDiv = document.getElementById('drawing-instructions');
+    if (instructionsDiv) {
+        instructionsDiv.style.display = 'block';
+    }
 }
 
 // Redraw polygon
@@ -301,6 +271,9 @@ function redrawPolygon() {
     document.getElementById('areaValue').textContent = '0';
     document.getElementById('step-box-area-value').textContent = '0';
     document.getElementById('area').style.display = 'none';
+    
+    // Hide the Procedi button
+    document.getElementById('step2Next').style.display = 'none';
     
     // Enter drawing mode again
     startDrawing();
@@ -323,21 +296,21 @@ function selectToggle(button, groupId) {
     // Get all buttons in the group
     const buttons = document.querySelectorAll(`#${groupId} .btn-toggle`);
     
-    // Remove active class from all buttons
+    // Remove selected class from all buttons
     buttons.forEach(btn => {
-        btn.classList.remove('active');
+        btn.classList.remove('selected');
     });
     
-    // Add active class to clicked button
-    button.classList.add('active');
+    // Add selected class to clicked button
+    button.classList.add('selected');
 }
 
 // Function to highlight checkbox when checked
 function highlightCheckbox(checkbox) {
-    const label = checkbox.parentElement;
+    const label = checkbox.nextElementSibling;
     if (checkbox.checked) {
-        label.classList.add('checked');
+        label.classList.add('selected');
     } else {
-        label.classList.remove('checked');
+        label.classList.remove('selected');
     }
 }
